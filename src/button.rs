@@ -76,7 +76,6 @@ impl Button {
         }
 
         let mouse_pos = rl.get_mouse_position();
-        let old_hovered = self.is_hovered;
         self.is_hovered = self.bounds.check_collision_point_rec(mouse_pos);
 
         // Update pressed state
