@@ -54,7 +54,6 @@ impl Checkbox {
 
     pub fn update(&mut self, rl: &RaylibHandle) {
         let mouse_pos = rl.get_mouse_position();
-        let old_hovered = self.is_hovered;
         self.is_hovered = self.bounds.check_collision_point_rec(mouse_pos);
 
         // Handle click animation
@@ -156,5 +155,79 @@ impl Checkbox {
 
     pub fn toggle(&mut self) {
         self.set_checked(!self.is_checked);
+    }
+
+    pub fn is_hovered(&self) -> bool {
+        self.is_hovered
+    }
+
+    pub fn is_clicked(&self) -> bool {
+        self.is_clicked
+    }
+
+    pub fn get_bounds(&self) -> Rectangle {
+        self.bounds
+    }
+
+    pub fn set_bounds(&mut self, bounds: Rectangle) {
+        self.bounds = bounds;
+    }
+
+    pub fn get_label(&self) -> &str {
+        &self.label
+    }
+
+    pub fn set_label(&mut self, label: &str) {
+        self.label = label.to_string();
+    }
+
+    pub fn get_font_size(&self) -> i32 {
+        self.font_size
+    }
+
+    pub fn get_colors(&self) -> (Color, Color, Color, Color, Color) {
+        (
+            self.background_color,
+            self.check_color,
+            self.border_color,
+            self.hover_color,
+            self.label_color,
+        )
+    }
+
+    pub fn get_animation_progress(&self) -> f32 {
+        self.animation_progress
+    }
+
+    pub fn set_animation_progress(&mut self, progress: f32) {
+        self.animation_progress = progress;
+    }
+
+    pub fn set_hovered(&mut self, hovered: bool) {
+        self.is_hovered = hovered;
+    }
+
+    pub fn set_clicked(&mut self, clicked: bool) {
+        self.is_clicked = clicked;
+    }
+
+    pub fn set_label_color(&mut self, color: Color) {
+        self.label_color = color;
+    }
+
+    pub fn set_check_color(&mut self, color: Color) {
+        self.check_color = color;
+    }
+
+    pub fn set_hover_color(&mut self, color: Color) {
+        self.hover_color = color;
+    }
+
+    pub fn set_border_color(&mut self, color: Color) {
+        self.border_color = color;
+    }
+
+    pub fn set_background_color(&mut self, color: Color) {
+        self.background_color = color;
     }
 }

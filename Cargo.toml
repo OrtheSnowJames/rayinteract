@@ -6,10 +6,10 @@ edition = "2021"
 description = "An interactive library for Raylib"
 license = "MIT"
 homepage = "https://github.com/OrtheSnowJames/rayinteract"
-readme = "README.md"  # Optional, path to your readme file (use it if you have a readme)
+readme = "README.md"
 
 [dependencies]
-raylib = "5.0"  # version of the raylib crate you're using
+raylib = "5.0" 
 
 [lib]
 name = "raylib_interactive"
