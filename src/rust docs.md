@@ -1,9 +1,9 @@
 # Raylib Interactive Documentation
 
 Raylib Interactive is a library built on raylib that adds many components to raylib-rs,
-allowing you to make better graphical interfaces. The latest version added better
-functionallity to the things allowing for mostly text changes but also other stuff and
-more! For more information, visit my [GitHub homepage](https://github.com/OrtheSnowJames/rayinteract).
+allowing you to make better graphical interfaces. The latest version:
+Added backspace hold functionality to TextField.
+For more information, visit my [GitHub homepage](https://github.com/OrtheSnowJames/rayinteract).
 
 This library adds Buttons, Checkboxes, Textfields, and Dropdowns.
 Hope you enjoy! -James
