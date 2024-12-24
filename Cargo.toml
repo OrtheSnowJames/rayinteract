@@ -5,6 +5,7 @@ authors = ["James Yacoube <jamesyacoube@yahoo.com>"]
 edition = "2021"
 description = "An interactive library for Raylib"
 license = "MIT"
+homepage = "https://github.com/OrtheSnowJames/rayinteract"
 readme = "README.md"  # Optional, path to your readme file (use it if you have a readme)
 
 [dependencies]
