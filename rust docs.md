@@ -102,7 +102,7 @@ Raylib Interactive is a high-level UI library built on top of Raylib, providing 
 ## Usage Example
 ```rust
 use raylib::prelude::*;
-use rayinteract::*;
+use raylib_interactive::*;
 
 fn main() {
   let (mut rl, thread) = raylib::init()

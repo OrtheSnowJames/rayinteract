@@ -1,202 +1,137 @@
-Raylib Interactive Elements Documentation
-=========================================
+# Raylib Interactive Documentation
 
-This document provides an overview of the interactive elements implemented in Rust using the Raylib library. These components provide a rich set of interactive UI functionality for graphical applications or games.
+Raylib Interactive is a library built on raylib that adds many components to raylib-rs,
+allowing you to make better graphical interfaces. The latest version added better
+functionallity to the things allowing for mostly text changes but also other stuff and
+more! For more information, visit my [GitHub homepage](https://github.com/OrtheSnowJames/rayinteract).
 
-1. **Checkbox**
------------------
-### Description:
-An animated checkbox that toggles between checked and unchecked states with visual feedback.
+This library adds Buttons, Checkboxes, Textfields, and Dropdowns.
+Hope you enjoy! -James
 
-### Public Methods:
-- `pub fn new(x: f32, y: f32, size: f32, label: &str) -> Self`
-  - Constructor to initialize the checkbox.
-  - Parameters:
-    - `x`, `y`: Position of the checkbox
-    - `size`: Size of the checkbox
-    - `label`: Text label displayed next to the checkbox
+## Overview
+### Button Methods
+- `new(x: f32, y: f32, width: f32, height: f32, text: &str) -> Self` // Creates a new button with specified position, dimensions and text
+- `with_style(mut self, style: ButtonStyle) -> Self` // Applies a custom style to the button
+- `set_enabled(&mut self, enabled: bool)` // Enables or disables the button interactivity
+- `is_enabled(&self) -> bool` // Returns whether the button is currently enabled
+- `set_position(&mut self, x: f32, y: f32)` // Updates the button's position
+- `set_size(&mut self, width: f32, height: f32)` // Updates the button's dimensions
+- `set_text(&mut self, text: &str)` // Changes the button's text
+- `get_text(&self) -> &str` // Returns the current button text
+- `get_position(&self) -> Vector2` // Returns the current position
+- `get_size(&self) -> Vector2` // Returns the current dimensions
+- `is_clicked(&self, rl: &RaylibHandle) -> bool` // Checks if button was clicked this frame
+- `is_hovered(&self) -> bool` // Checks if mouse is hovering over button
+- `update(&mut self, rl: &RaylibHandle)` // Updates button state
+- `draw(&self, d: &mut RaylibDrawHandle)` // Renders the button
 
-- `pub fn set_colors(&mut self, background: Color, check: Color, border: Color, hover: Color, label: Color)`
-  - Set all colors for the checkbox components.
+### Checkbox Methods
+- `new(x: f32, y: f32, size: f32, label: &str) -> Self` // Creates a new checkbox with position, size and label
+- `set_checked(&mut self, checked: bool)` // Sets the checked state
+- `is_checked(&self) -> bool` // Returns current checked state
+- `toggle(&mut self)` // Toggles between checked/unchecked
+- `set_position(&mut self, x: f32, y: f32)` // Updates checkbox position
+- `set_size(&mut self, size: f32)` // Updates checkbox size
+- `set_label(&mut self, label: &str)` // Changes the label text
+- `get_label(&self) -> &str` // Returns current label text
+- `with_animation(mut self, animation: CheckboxAnimation) -> Self` // Applies custom animation
+- `update(&mut self, rl: &RaylibHandle)` // Updates checkbox state
+- `draw(&self, d: &mut RaylibDrawHandle)` // Renders the checkbox
 
-- `pub fn set_font_size(&mut self, size: i32)`
-  - Set the font size for the label.
+### TextField Methods
+- `new(x: f32, y: f32, width: f32, height: f32, max_length: usize) -> Self` // Creates new text field with position, size and max length
+- `set_text(&mut self, text: &str)` // Sets the field's text content
+- `get_text(&self) -> &str` // Returns current text content
+- `set_placeholder(&mut self, placeholder: &str)` // Sets placeholder text shown when empty
+- `get_placeholder(&self) -> &str` // Returns current placeholder text
+- `set_mask_char(&mut self, mask: Option<char>)` // Sets masking character for password fields
+- `set_max_length(&mut self, max_length: usize)` // Updates maximum text length
+- `is_focused(&self) -> bool` // Returns whether field has input focus
+- `set_position(&mut self, x: f32, y: f32)` // Updates field position
+- `set_size(&mut self, width: f32, height: f32)` // Updates field dimensions
+- `clear(&mut self)` // Clears all text content
+- `handle_input(&mut self, rl: &RaylibHandle)` // Processes keyboard input
+- `update(&mut self, rl: &RaylibHandle)` // Updates field state
+- `draw(&self, d: &mut RaylibDrawHandle)` // Renders the text field
 
-- `pub fn update(&mut self, rl: &RaylibHandle)`
-  - Handles input and animations.
+### Dropdown Methods
+- `new(x: f32, y: f32, width: f32, height: f32, items: Vec<String>) -> Self` // Creates dropdown with position, size and items
+- `set_items(&mut self, items: Vec<String>)` // Updates the list of items
+- `get_items(&self) -> &[String]` // Returns current item list
+- `set_selected_index(&mut self, index: Option<usize>)` // Sets currently selected item
+- `get_selected_index(&self) -> Option<usize>` // Returns index of selected item
+- `get_selected_item(&self) -> Option<&String>` // Returns currently selected item
+- `enable_search(&mut self, enabled: bool)` // Enables/disables search functionality
+- `is_search_enabled(&self) -> bool` // Returns whether search is enabled
+- `set_max_height(&mut self, height: f32)` // Sets maximum height when opened
+- `set_position(&mut self, x: f32, y: f32)` // Updates dropdown position
+- `set_size(&mut self, width: f32, height: f32)` // Updates dropdown dimensions
+- `is_opened(&self) -> bool` // Returns whether dropdown is expanded
+- `update(&mut self, rl: &RaylibHandle)` // Updates dropdown state
+- `draw(&self, d: &mut RaylibDrawHandle)` // Renders the dropdown
 
-- `pub fn draw(&self, d: &mut RaylibDrawHandle)`
-  - Renders the checkbox with animations.
+### Common Traits
+- `Drawable::draw(&self, d: &mut RaylibDrawHandle)` // Renders a UI component
+- `Interactive::update(&mut self, rl: &RaylibHandle)` // Updates component state
+- `Interactive::handle_input(&mut self, rl: &RaylibHandle)` // Processes user input
+- `Styleable::with_theme(self, theme: Theme) -> Self` // Applies a theme to component
+- `Styleable::override_style(self, style: Style) -> Self` // Overrides default styling
 
-- `pub fn is_checked(&self) -> bool`
-  - Returns the current state.
+### Event System
+- `EventEmitter::on(&mut self, event: Event, callback: Box<dyn Fn(&T)>)` // Registers event callback
+- `EventEmitter::emit(&self, event: Event, data: &T)` // Triggers registered event callbacks
 
-- `pub fn set_checked(&mut self, checked: bool)`
-  - Programmatically set the checkbox state.
+### Layout System
+- `Layout::horizontal()` // Creates horizontal layout container
+- `Layout::vertical()` // Creates vertical layout container
+- `Layout::grid(rows: u32, cols: u32)` // Creates grid layout container
+- `Layout::add<T: Widget>(&mut self, widget: T)` // Adds widget to layout
+- `Layout::remove(&mut self, index: usize)` // Removes widget at index
+- `Layout::clear(&mut self)` // Removes all widgets
+## Introduction
+Raylib Interactive is a high-level UI library built on top of Raylib, providing an intuitive and flexible interface for creating interactive graphical user interfaces in Rust. It offers a comprehensive set of widgets, event handling, and layout management tools while maintaining Raylib's simplicity and performance.
 
-- `pub fn toggle(&mut self)`
-  - Toggle the checkbox state.
+### Key Features
+- Ready-to-use UI components (buttons, checkboxes, text fields, dropdowns)
+- Event-driven architecture with custom callbacks
+- Flexible layout system for complex UI arrangements
+- Customizable themes and styling
+- Automatic input handling and state management
+- Seamless integration with existing Raylib applications
 
-2. **Dropdown**
------------------
-### Description:
-A scrollable dropdown menu with hover effects and custom styling.
-
-### Public Methods:
-- `pub fn new(x: f32, y: f32, width: f32, height: f32, items: Vec<String>) -> Self`
-  - Constructor to initialize the dropdown.
-  - Parameters:
-    - `x`, `y`: Position
-    - `width`, `height`: Dimensions
-    - `items`: List of options
-
-- `pub fn set_colors(&mut self, background: Color, border: Color, text: Color, hover: Color)`
-  - Set the colors for all components.
-
-- `pub fn set_font_size(&mut self, size: i32)`
-  - Set the font size.
-
-- `pub fn set_max_visible_items(&mut self, count: usize)`
-  - Set maximum number of visible items before scrolling.
-
-- `pub fn update(&mut self, rl: &RaylibHandle)`
-  - Handles input, scrolling, and item selection.
-
-- `pub fn draw(&self, d: &mut RaylibDrawHandle)`
-  - Renders the dropdown with scroll indicators.
-
-- `pub fn get_selected_index(&self) -> Option<usize>`
-  - Returns the selected item's index.
-
-- `pub fn get_selected_item(&self) -> Option<&String>`
-  - Returns the selected item.
-
-3. **TextField**
------------------
-### Description:
-A text input field with cursor animation and selection support.
-
-### Public Methods:
-- `pub fn new(x: f32, y: f32, width: f32, height: f32, max_length: usize) -> Self`
-  - Constructor to initialize the text field.
-  - Parameters:
-    - `x`, `y`: Position
-    - `width`, `height`: Dimensions
-    - `max_length`: Maximum text length
-
-- `pub fn set_colors(&mut self, background: Color, border: Color, text: Color)`
-  - Set the colors.
-
-- `pub fn set_font_size(&mut self, size: i32)`
-  - Set the font size.
-
-- `pub fn update(&mut self, rl: &RaylibHandle)`
-  - Handles text input and cursor movement.
-
-- `pub fn draw(&self, d: &mut RaylibDrawHandle)`
-  - Renders the field with animated cursor.
-
-- `pub fn get_text(&self) -> &str`
-  - Returns current text.
-
-- `pub fn is_active(&self) -> bool`
-  - Returns focus state.
-
-- `pub fn activate(&mut self)`
-  - Set focus to this field.
-
-- `pub fn deactivate(&mut self)`
-  - Remove focus.
-
-4. **Button**
------------------
-### Description:
-An animated button with hover and press effects, rounded corners, and custom styling.
-
-### Public Methods:
-- `pub fn new(x: f32, y: f32, width: f32, height: f32, label: &str) -> Self`
-  - Constructor to initialize the button.
-  - Parameters:
-    - `x`, `y`: Position
-    - `width`, `height`: Dimensions
-    - `label`: Button text
-
-- `pub fn set_colors(&mut self, background: Color, hover: Color, pressed: Color, border: Color, text: Color)`
-  - Set all button colors.
-
-- `pub fn set_font_size(&mut self, size: i32)`
-  - Set the font size.
-
-- `pub fn set_corner_radius(&mut self, radius: f32)`
-  - Set corner rounding radius.
-
-- `pub fn set_padding(&mut self, padding: f32)`
-  - Set internal padding.
-
-- `pub fn set_enabled(&mut self, enabled: bool)`
-  - Enable/disable the button.
-
-- `pub fn update(&mut self, rl: &RaylibHandle)`
-  - Handles input and animations.
-
-- `pub fn draw(&self, d: &mut RaylibDrawHandle)`
-  - Renders the button with effects.
-
-- `pub fn is_clicked(&self, rl: &RaylibHandle) -> bool`
-  - Returns true if clicked.
-
-- `pub fn is_pressed(&self) -> bool`
-  - Returns true if being pressed.
-
-- `pub fn is_hovered(&self) -> bool`
-  - Returns true if mouse is over button.
-
-- `pub fn is_enabled(&self) -> bool`
-  - Returns enabled state.
-
-- `pub fn get_label(&self) -> &str`
-  - Returns button text.
-
-- `pub fn set_label(&mut self, label: &str)`
-  - Set button text.
-
-### Usage Example:
+## Usage Example
 ```rust
-// Initialize Raylib
-let (mut rl, thread) = raylib::init()
+use raylib::prelude::*;
+use raylib_interactive::*;
+
+fn main() {
+  let (mut rl, thread) = raylib::init()
     .size(800, 600)
-    .title("Raylib Interactive Elements")
-    .msaa_4x()
-    .vsync()
+    .title("Raylib Interactive Demo")
     .build();
 
-// Create elements
-let mut checkbox = Checkbox::new(100.0, 100.0, 24.0, "Enable Option");
-let mut dropdown = Dropdown::new(200.0, 100.0, 150.0, 30.0, 
-    vec!["Option 1".to_string(), "Option 2".to_string()]);
-let mut text_field = TextField::new(100.0, 200.0, 250.0, 35.0, 32);
-let mut button = Button::new(300.0, 300.0, 120.0, 40.0, "Submit");
+  let mut button = Button::new(350.0, 200.0, 100.0, 40.0, "Click Me!")
+    .with_style(ButtonStyle::default());
+  
+  let mut checkbox = Checkbox::new(350.0, 300.0, 20.0, "Enable Feature");
+  
+  let mut text_field = TextField::new(300.0, 400.0, 200.0, 30.0, 50);
 
-// Customize appearance
-button.set_corner_radius(5.0);
-dropdown.set_max_visible_items(4);
-
-// Main loop
-while !rl.window_should_close() {
-    // Update
-    checkbox.update(&rl);
-    dropdown.update(&rl);
-    text_field.update(&rl);
+  while !rl.window_should_close() {
     button.update(&rl);
+    checkbox.update(&rl);
+    text_field.update(&rl);
 
-    // Draw
+    if button.is_clicked(&rl) {
+      println!("Button clicked!");
+    }
+
     let mut d = rl.begin_drawing(&thread);
-    d.clear_background(Color::RAYWHITE);
+    d.clear_background(Color::WHITE);
 
-    checkbox.draw(&mut d);
-    dropdown.draw(&mut d);
-    text_field.draw(&mut d);
     button.draw(&mut d);
+    checkbox.draw(&mut d);
+    text_field.draw(&mut d);
+  }
 }
 ```
-
