@@ -11,7 +11,9 @@ pub struct TextField {
     is_active: bool,
     cursor_position: usize,
     cursor_blink_timer: f32,
+    backspace_hold_timer: f32,
 }
+
 impl TextField {
  
 
@@ -27,6 +29,7 @@ impl TextField {
             is_active: false,
             cursor_position: 0,
             cursor_blink_timer: 0.0,
+            backspace_hold_timer: 0.0,
         }
     }
 
@@ -90,6 +93,20 @@ impl TextField {
                     },
                     _ => {}
                 }
+            }
+
+            // Handle holding backspace
+            if rl.is_key_down(KeyboardKey::KEY_BACKSPACE) {
+                self.backspace_hold_timer += rl.get_frame_time();
+                if self.backspace_hold_timer > 0.5 {
+                    self.backspace_hold_timer = 1.0; //slight delay before continuous deletion
+                    if self.cursor_position > 0 {
+                        self.text.remove(self.cursor_position - 1);
+                        self.cursor_position -= 1;
+                    }
+                }
+            } else {
+                self.backspace_hold_timer = 0.0;
             }
         }
     }
