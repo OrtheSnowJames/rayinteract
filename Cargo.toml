@@ -1,6 +1,6 @@
 [package]
 name = "raylib_interactive"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["James Yacoube <jamesyacoube@yahoo.com>"]
 edition = "2021"
 description = "An interactive library for Raylib"
@@ -15,6 +15,3 @@ raylib = "5.0"
 name = "raylib_interactive"
 path = "src/lib.rs"
 crate-type = ["lib"]
-
-[dev-dependencies]
-# Any additional dependencies you need for testing can go here
