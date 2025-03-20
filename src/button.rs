@@ -1,7 +1,7 @@
 use raylib::prelude::*;
 
 pub struct Button {
-    bounds: Rectangle,
+    pub bounds: Rectangle,
     label: String,
     background_color: Color,
     hover_color: Color,
@@ -276,6 +276,10 @@ impl Button {
 
     pub fn change_animation_progress(&mut self, progress: f32) {
         self.animation_progress = progress;
+    }
+
+    pub fn get_animation_progress(&self) -> f32 {
+        self.animation_progress
     }
 }
 

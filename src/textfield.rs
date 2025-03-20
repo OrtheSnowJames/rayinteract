@@ -1,7 +1,7 @@
 use raylib::prelude::*;
 
 pub struct TextField {
-    bounds: Rectangle,
+    pub bounds: Rectangle,
     text: String,
     max_length: usize,
     background_color: Color,
@@ -166,6 +166,87 @@ impl TextField {
     }
 
     pub fn deactivate(&mut self) {
+        self.is_active = false;
+    }
+
+    pub fn clear(&mut self) {
+        self.text.clear();
+        self.cursor_position = 0;
+    }
+
+    pub fn set_cursor_position(&mut self, position: usize) {
+        if position <= self.text.len() {
+            self.cursor_position = position;
+        }
+    }
+
+    pub fn get_cursor_position(&self) -> usize {
+        self.cursor_position
+    }
+
+    pub fn get_bounds(&self) -> Rectangle {
+        self.bounds
+    }
+
+    pub fn set_bounds(&mut self, bounds: Rectangle) {
+        self.bounds = bounds;
+    }
+
+    pub fn get_max_length(&self) -> usize {
+        self.max_length
+    }
+
+    pub fn set_max_length(&mut self, max_length: usize) {
+        self.max_length = max_length;
+        if self.text.len() > max_length {
+            self.text.truncate(max_length);
+            self.cursor_position = max_length;
+        }
+    }
+
+    pub fn get_background_color(&self) -> Color {
+        self.background_color
+    }
+
+    pub fn get_border_color(&self) -> Color {
+        self.border_color
+    }
+
+    pub fn get_text_color(&self) -> Color {
+        self.text_color
+    }
+
+    pub fn get_font_size(&self) -> i32 {
+        self.font_size
+    }
+
+    pub fn set_background_color(&mut self, color: Color) {
+        self.background_color = color;
+    }
+
+    pub fn set_border_color(&mut self, color: Color) {
+        self.border_color = color;
+    }
+
+    pub fn set_text_color(&mut self, color: Color) {
+        self.text_color = color;
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.text.is_empty()
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.text.len() >= self.max_length
+    }
+
+    pub fn is_valid(&self) -> bool {
+        !self.text.is_empty() && self.text.len() <= self.max_length
+    }
+
+    pub fn reset(&mut self) {
+        self.text.clear();
+        self.cursor_position = 0;
         self.is_active = false;
     }
 }

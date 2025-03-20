@@ -1,7 +1,7 @@
 use raylib::prelude::*;
 
 pub struct Dropdown {
-    bounds: Rectangle,
+    pub bounds: Rectangle,
     items: Vec<String>,
     selected_index: Option<usize>,
     is_open: bool,
@@ -276,4 +276,103 @@ impl Dropdown {
         self.bounds = bounds;
     }
 
+    pub fn get_background_color(&self) -> Color {
+        self.background_color
+    }
+
+    pub fn get_border_color(&self) -> Color {
+        self.border_color
+    }
+
+    pub fn get_text_color(&self) -> Color {
+        self.text_color
+    }
+
+    pub fn get_hover_color(&self) -> Color {
+        self.hover_color
+    }
+
+    pub fn get_font_size(&self) -> i32 {
+        self.font_size
+    }
+
+    pub fn set_background_color(&mut self, color: Color) {
+        self.background_color = color;
+    }
+
+    pub fn set_border_color(&mut self, color: Color) {
+        self.border_color = color;
+    }
+
+    pub fn set_text_color(&mut self, color: Color) {
+        self.text_color = color;
+    }
+
+    pub fn set_hover_color(&mut self, color: Color) {
+        self.hover_color = color;
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.items.len() >= self.max_visible_items
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        !self.items.is_empty()
+    }
+
+    pub fn is_disabled(&self) -> bool {
+        self.items.is_empty()
+    }
+
+    pub fn toggle(&mut self) {
+        self.is_open = !self.is_open;
+    }
+
+    pub fn clear(&mut self) {
+        self.items.clear();
+        self.selected_index = None;
+        self.scroll_offset = 0;
+    }
+
+    pub fn reset(&mut self) {
+        self.selected_index = None;
+        self.scroll_offset = 0;
+        self.is_open = false;
+    }
+
+    pub fn is_opened(&self) -> bool {
+        self.is_open
+    }
+
+    pub fn is_closed(&self) -> bool {
+        !self.is_open
+    }
+
+    pub fn is_hovered(&self) -> bool {
+        self.hover_index.is_some()
+    }
+
+    pub fn is_hovered_item(&self) -> bool {
+        self.hover_index.is_some() && self.is_open
+    }
+
+    pub fn is_selected(&self) -> bool {
+        self.selected_index.is_some()
+    }
+
+    pub fn is_selected_item(&self) -> bool {
+        self.selected_index.is_some() && !self.is_open
+    }
+
+    pub fn is_scrollable(&self) -> bool {
+        self.items.len() > self.max_visible_items
+    }
+
+    pub fn is_scrolled(&self) -> bool {
+        self.scroll_offset > 0
+    }
 }

@@ -230,4 +230,20 @@ impl Checkbox {
     pub fn set_background_color(&mut self, color: Color) {
         self.background_color = color;
     }
+
+    pub fn set_background_color_hover(&mut self, color: Color) {
+        self.hover_color = color;
+    }
+
+    pub fn set_background_color_pressed(&mut self, color: Color) {
+        self.background_color = color;
+    }
+
+    pub fn set_border_color_hover(&mut self, color: Color) {
+        self.border_color = color;
+    }
+
+    pub fn set_border_color_pressed(&mut self, color: Color) {
+        self.border_color = color;
+    }
 }
