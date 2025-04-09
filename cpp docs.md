@@ -163,3 +163,6 @@ A clickable button with a customizable label, size, and colors.
    CloseWindow();
    ```
 
+
+## Install
+Install instructions are at the bottom of the [CMakeLists.](./CMakeLists.txt)

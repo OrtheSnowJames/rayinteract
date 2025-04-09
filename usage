@@ -1,0 +1,12 @@
+rayinteract provides CMake targets:
+
+# To use rayinteract in your project, add the following to your CMakeLists.txt:
+
+find_package(rayinteract REQUIRED)
+target_link_libraries(main PRIVATE rayinteract::rayinteract)
+
+# Include headers in your source files:
+#include <rayinteract/button.hpp>
+#include <rayinteract/checkbox.hpp>
+#include <rayinteract/dropdown.hpp>
+#include <rayinteract/textfield.hpp>

@@ -1,0 +1,21 @@
+{
+    "name": "rayinteract",
+    "version": "0.1.5",
+    "homepage": "https://github.com/OrtheSnowJames/rayinteract",
+    "description": "An interactive library for Raylib that provides UI components like buttons, checkboxes, dropdowns, and text fields.",
+    "license": "MIT",
+    "dependencies": [
+        {
+            "name": "raylib",
+            "default-features": true
+        },
+        {
+            "name": "vcpkg-cmake",
+            "host": true
+        },
+        {
+            "name": "vcpkg-cmake-config",
+            "host": true
+        }
+    ]
+}
