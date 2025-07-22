@@ -1,20 +1,14 @@
 use raylib::prelude::*;
+use crate::style::Style;
 
 pub struct Button {
     pub bounds: Rectangle,
-    label: String,
-    background_color: Color,
-    hover_color: Color,
-    pressed_color: Color,
-    border_color: Color,
-    text_color: Color,
-    font_size: i32,
-    is_hovered: bool,
-    is_pressed: bool,
-    animation_progress: f32,
-    padding: f32,
-    corner_radius: f32,
-    enabled: bool,
+    pub label: String,
+    pub style: Style,
+    pub is_hovered: bool,
+    pub is_pressed: bool,
+    pub animation_progress: f32,
+    pub enabled: bool,
 }
 
 impl Button {
@@ -22,19 +16,17 @@ impl Button {
         Self {
             bounds: Rectangle::new(x, y, width, height),
             label: label.to_string(),
-            background_color: Color::LIGHTGRAY,
-            hover_color: Color::new(200, 200, 200, 255),
-            pressed_color: Color::DARKGRAY,
-            border_color: Color::BLACK,
-            text_color: Color::BLACK,
-            font_size: 20,
+            style: Style::default(),
             is_hovered: false,
             is_pressed: false,
             animation_progress: 0.0,
-            padding: 5.0,
-            corner_radius: 5.0,
             enabled: true,
         }
+    }
+
+    pub fn with_style(mut self, style: Style) -> Self {
+        self.style = style;
+        self
     }
 
     pub fn set_colors(
@@ -45,27 +37,11 @@ impl Button {
         border: Color,
         text: Color,
     ) {
-        self.background_color = background;
-        self.hover_color = hover;
-        self.pressed_color = pressed;
-        self.border_color = border;
-        self.text_color = text;
-    }
-
-    pub fn set_font_size(&mut self, size: i32) {
-        self.font_size = size;
-    }
-
-    pub fn set_corner_radius(&mut self, radius: f32) {
-        self.corner_radius = radius;
-    }
-
-    pub fn set_padding(&mut self, padding: f32) {
-        self.padding = padding;
-    }
-
-    pub fn set_enabled(&mut self, enabled: bool) {
-        self.enabled = enabled;
+        self.style.background_color = background;
+        self.style.hover_color = hover;
+        self.style.pressed_color = pressed;
+        self.style.border_color = border;
+        self.style.text_color = text;
     }
 
     pub fn update(&mut self, rl: &RaylibHandle) {
@@ -112,174 +88,108 @@ impl Button {
         }
     }
     
-    pub fn draw(&self, d: &mut RaylibDrawHandle) {
+    pub fn draw(&self, d: &mut impl RaylibDraw) {
         let current_color = if !self.enabled {
-            self.background_color.fade(0.5) 
-    } else {
-        let base_color = self.background_color;
-        let hover_color = self.hover_color;
-        let pressed_color = self.pressed_color;
-
-        if self.animation_progress <= 0.5 {
-            // Implement our own color interpolation
-            let t = self.animation_progress * 2.0;
-            Color::new(
-                ((hover_color.r as f32 - base_color.r as f32) * t + base_color.r as f32) as u8,
-                ((hover_color.g as f32 - base_color.g as f32) * t + base_color.g as f32) as u8,
-                ((hover_color.b as f32 - base_color.b as f32) * t + base_color.b as f32) as u8,
-                ((hover_color.a as f32 - base_color.a as f32) * t + base_color.a as f32) as u8,
-            )
+            self.style.disabled_color
         } else {
-            let t = (self.animation_progress - 0.5) * 2.0;
-            Color::new(
-                ((pressed_color.r as f32 - hover_color.r as f32) * t + hover_color.r as f32) as u8,
-                ((pressed_color.g as f32 - hover_color.g as f32) * t + hover_color.g as f32) as u8,
-                ((pressed_color.b as f32 - hover_color.b as f32) * t + hover_color.b as f32) as u8,
-                ((pressed_color.a as f32 - hover_color.a as f32) * t + hover_color.a as f32) as u8,
-            )
-        }
-    };
+            let base_color = self.style.background_color;
+            let hover_color = self.style.hover_color;
+            let pressed_color = self.style.pressed_color;
 
-    // Draw button background with rounded corners
-    d.draw_rectangle_rounded(self.bounds, self.corner_radius, 8, current_color);
+            if self.animation_progress <= 0.5 {
+                // Implement our own color interpolation
+                let t = self.animation_progress * 2.0;
+                Color::new(
+                    ((hover_color.r as f32 - base_color.r as f32) * t + base_color.r as f32) as u8,
+                    ((hover_color.g as f32 - base_color.g as f32) * t + base_color.g as f32) as u8,
+                    ((hover_color.b as f32 - base_color.b as f32) * t + base_color.b as f32) as u8,
+                    ((hover_color.a as f32 - base_color.a as f32) * t + base_color.a as f32) as u8,
+                )
+            } else {
+                let t = (self.animation_progress - 0.5) * 2.0;
+                Color::new(
+                    ((pressed_color.r as f32 - hover_color.r as f32) * t + hover_color.r as f32) as u8,
+                    ((pressed_color.g as f32 - hover_color.g as f32) * t + hover_color.g as f32) as u8,
+                    ((pressed_color.b as f32 - hover_color.b as f32) * t + hover_color.b as f32) as u8,
+                    ((pressed_color.a as f32 - hover_color.a as f32) * t + hover_color.a as f32) as u8,
+                )
+            }
+        };
 
-    // Draw border
-    let border_thickness = if self.is_pressed { 3.0 } else { 2.0 };
-    d.draw_rectangle_rounded_lines(
-        self.bounds,
-        self.corner_radius,
-        8,
-        border_thickness,
-        self.border_color,
-    );
+        // Draw button background with rounded corners
+        d.draw_rectangle_rounded(self.bounds, self.style.corner_radius, 8, current_color);
 
-    // Calculate text position for centering
-    let text_width = d.measure_text(&self.label, self.font_size);
-    let text_x = self.bounds.x + (self.bounds.width - text_width as f32) / 2.0;
-    let text_y = self.bounds.y + (self.bounds.height - self.font_size as f32) / 2.0;
+        // Draw border
+        let border_color = if self.is_pressed {
+            self.style.border_color_pressed
+        } else if self.is_hovered {
+            self.style.border_color_hover
+        } else {
+            self.style.border_color
+        };
 
-    // Draw text with slight offset when pressed
-    let (text_offset_x, text_offset_y) = if self.is_pressed {
-        (1.0, 1.0)
-    } else {
-        (0.0, 0.0)
-    };
+        d.draw_rectangle_rounded_lines(
+            self.bounds,
+            self.style.corner_radius,
+            8,
+            border_color,
+        );
 
-    let text_color = if self.enabled {
-        self.text_color
-    } else {
-        self.text_color.fade(0.5) // Using the new .fade() method
-    };
+        // Calculate text position for centering
+        let text_width = unsafe { raylib::ffi::MeasureText(self.label.as_ptr() as *const i8, self.style.font_size) };
+        let text_x = self.bounds.x + (self.bounds.width - text_width as f32) / 2.0;
+        let text_y = self.bounds.y + (self.bounds.height - self.style.font_size as f32) / 2.0;
 
-    d.draw_text(
-        &self.label,
-        (text_x + text_offset_x) as i32,
-        (text_y + text_offset_y) as i32,
-        self.font_size,
-        text_color,
-    );
+        // Check if text fits, if not truncate with ellipsis
+        let display_text = if text_width as f32 > self.bounds.width - self.style.padding * 2.0 {
+            let mut truncated = self.label.clone();
+            while unsafe { raylib::ffi::MeasureText((truncated.clone() + "...").as_ptr() as *const i8, self.style.font_size) } as f32 > self.bounds.width - self.style.padding * 2.0 {
+                truncated.pop();
+                if truncated.is_empty() {
+                    break;
+                }
+            }
+            truncated + "..."
+        } else {
+            self.label.clone()
+        };
+
+        // Recalculate position for truncated text
+        let final_text_width = unsafe { raylib::ffi::MeasureText(display_text.as_ptr() as *const i8, self.style.font_size) };
+        let final_text_x = self.bounds.x + (self.bounds.width - final_text_width as f32) / 2.0;
+
+        // Draw text with slight offset when pressed
+        let (text_offset_x, text_offset_y) = if self.is_pressed {
+            (1.0, 1.0)
+        } else {
+            (0.0, 0.0)
+        };
+
+        let text_color = if self.enabled {
+            if self.is_pressed {
+                self.style.text_color_pressed
+            } else if self.is_hovered {
+                self.style.text_color_hover
+            } else {
+                self.style.text_color
+            }
+        } else {
+            self.style.text_color_disabled
+        };
+
+        d.draw_text(
+            &display_text,
+            (final_text_x + text_offset_x) as i32,
+            (text_y + text_offset_y) as i32,
+            self.style.font_size,
+            text_color,
+        );
     }
 
     pub fn is_clicked(&self, rl: &RaylibHandle) -> bool {
         self.enabled
             && self.is_hovered
             && rl.is_mouse_button_released(MouseButton::MOUSE_BUTTON_LEFT)
-    }
-
-    pub fn is_pressed(&self) -> bool {
-        self.is_pressed
-    }
-
-    pub fn is_hovered(&self) -> bool {
-        self.is_hovered
-    }
-
-    pub fn is_enabled(&self) -> bool {
-        self.enabled
-    }
-
-    pub fn get_label(&self) -> &str {
-        &self.label
-    }
-
-    pub fn set_label(&mut self, label: &str) {
-        self.label = label.to_string();
-    }
-
-    pub fn get_bounds(&self) -> Rectangle {
-        self.bounds
-    }
-
-    pub fn set_bounds(&mut self, bounds: Rectangle) {
-        self.bounds = bounds;
-    }
-
-    pub fn get_background_color(&self) -> Color {
-        self.background_color
-    }
-
-    pub fn get_hover_color(&self) -> Color {
-        self.hover_color
-    }
-
-    pub fn get_pressed_color(&self) -> Color {
-        self.pressed_color
-    }
-
-    pub fn change_text_color(&mut self, color: Color) {
-        self.text_color = color;
-    }
-
-    pub fn change_text(&mut self, text: &str) {
-        self.label = text.to_string();
-    }
-
-    pub fn change_background_color(&mut self, color: Color) {
-        self.background_color = color;
-    }
-
-    pub fn change_hover_color(&mut self, color: Color) {
-        self.hover_color = color;
-    }
-
-    pub fn change_pressed_color(&mut self, color: Color) {
-        self.pressed_color = color;
-    }
-
-    pub fn change_border_color(&mut self, color: Color) {
-        self.border_color = color;
-    }
-
-    pub fn change_font_size(&mut self, size: i32) {
-        self.font_size = size;
-    }
-
-    pub fn change_corner_radius(&mut self, radius: f32) {
-        self.corner_radius = radius;
-    }
-
-    pub fn change_padding(&mut self, padding: f32) {
-        self.padding = padding;
-    }
-
-    pub fn change_enabled(&mut self, enabled: bool) {
-        self.enabled = enabled;
-    }
-
-    pub fn change_hovered(&mut self, hovered: bool) {
-        self.is_hovered = hovered;
-    }
-
-    pub fn change_pressed(&mut self, pressed: bool) {
-        self.is_pressed = pressed;
-    }
-
-    pub fn change_animation_progress(&mut self, progress: f32) {
-        self.animation_progress = progress;
-    }
-
-    pub fn get_animation_progress(&self) -> f32 {
-        self.animation_progress
     }
 }
 
