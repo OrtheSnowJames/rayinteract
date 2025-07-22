@@ -91,35 +91,35 @@ impl Button {
     pub fn draw(&self, d: &mut impl RaylibDraw) {
         let current_color = if !self.enabled {
             self.style.disabled_color
-        } else {
+    } else {
             let base_color = self.style.background_color;
             let hover_color = self.style.hover_color;
             let pressed_color = self.style.pressed_color;
 
-            if self.animation_progress <= 0.5 {
-                // Implement our own color interpolation
-                let t = self.animation_progress * 2.0;
-                Color::new(
-                    ((hover_color.r as f32 - base_color.r as f32) * t + base_color.r as f32) as u8,
-                    ((hover_color.g as f32 - base_color.g as f32) * t + base_color.g as f32) as u8,
-                    ((hover_color.b as f32 - base_color.b as f32) * t + base_color.b as f32) as u8,
-                    ((hover_color.a as f32 - base_color.a as f32) * t + base_color.a as f32) as u8,
-                )
-            } else {
-                let t = (self.animation_progress - 0.5) * 2.0;
-                Color::new(
-                    ((pressed_color.r as f32 - hover_color.r as f32) * t + hover_color.r as f32) as u8,
-                    ((pressed_color.g as f32 - hover_color.g as f32) * t + hover_color.g as f32) as u8,
-                    ((pressed_color.b as f32 - hover_color.b as f32) * t + hover_color.b as f32) as u8,
-                    ((pressed_color.a as f32 - hover_color.a as f32) * t + hover_color.a as f32) as u8,
-                )
-            }
-        };
+        if self.animation_progress <= 0.5 {
+            // Implement our own color interpolation
+            let t = self.animation_progress * 2.0;
+            Color::new(
+                ((hover_color.r as f32 - base_color.r as f32) * t + base_color.r as f32) as u8,
+                ((hover_color.g as f32 - base_color.g as f32) * t + base_color.g as f32) as u8,
+                ((hover_color.b as f32 - base_color.b as f32) * t + base_color.b as f32) as u8,
+                ((hover_color.a as f32 - base_color.a as f32) * t + base_color.a as f32) as u8,
+            )
+        } else {
+            let t = (self.animation_progress - 0.5) * 2.0;
+            Color::new(
+                ((pressed_color.r as f32 - hover_color.r as f32) * t + hover_color.r as f32) as u8,
+                ((pressed_color.g as f32 - hover_color.g as f32) * t + hover_color.g as f32) as u8,
+                ((pressed_color.b as f32 - hover_color.b as f32) * t + hover_color.b as f32) as u8,
+                ((pressed_color.a as f32 - hover_color.a as f32) * t + hover_color.a as f32) as u8,
+            )
+        }
+    };
 
-        // Draw button background with rounded corners
+    // Draw button background with rounded corners
         d.draw_rectangle_rounded(self.bounds, self.style.corner_radius, 8, current_color);
 
-        // Draw border
+    // Draw border
         let border_color = if self.is_pressed {
             self.style.border_color_pressed
         } else if self.is_hovered {
@@ -128,16 +128,16 @@ impl Button {
             self.style.border_color
         };
 
-        d.draw_rectangle_rounded_lines(
-            self.bounds,
+    d.draw_rectangle_rounded_lines(
+        self.bounds,
             self.style.corner_radius,
-            8,
+        8,
             border_color,
-        );
+    );
 
-        // Calculate text position for centering
+    // Calculate text position for centering
         let text_width = unsafe { raylib::ffi::MeasureText(self.label.as_ptr() as *const i8, self.style.font_size) };
-        let text_x = self.bounds.x + (self.bounds.width - text_width as f32) / 2.0;
+    let text_x = self.bounds.x + (self.bounds.width - text_width as f32) / 2.0;
         let text_y = self.bounds.y + (self.bounds.height - self.style.font_size as f32) / 2.0;
 
         // Check if text fits, if not truncate with ellipsis
@@ -158,14 +158,14 @@ impl Button {
         let final_text_width = unsafe { raylib::ffi::MeasureText(display_text.as_ptr() as *const i8, self.style.font_size) };
         let final_text_x = self.bounds.x + (self.bounds.width - final_text_width as f32) / 2.0;
 
-        // Draw text with slight offset when pressed
-        let (text_offset_x, text_offset_y) = if self.is_pressed {
-            (1.0, 1.0)
-        } else {
-            (0.0, 0.0)
-        };
+    // Draw text with slight offset when pressed
+    let (text_offset_x, text_offset_y) = if self.is_pressed {
+        (1.0, 1.0)
+    } else {
+        (0.0, 0.0)
+    };
 
-        let text_color = if self.enabled {
+    let text_color = if self.enabled {
             if self.is_pressed {
                 self.style.text_color_pressed
             } else if self.is_hovered {
@@ -173,17 +173,17 @@ impl Button {
             } else {
                 self.style.text_color
             }
-        } else {
+    } else {
             self.style.text_color_disabled
-        };
+    };
 
-        d.draw_text(
+    d.draw_text(
             &display_text,
             (final_text_x + text_offset_x) as i32,
-            (text_y + text_offset_y) as i32,
+        (text_y + text_offset_y) as i32,
             self.style.font_size,
-            text_color,
-        );
+        text_color,
+    );
     }
 
     pub fn is_clicked(&self, rl: &RaylibHandle) -> bool {

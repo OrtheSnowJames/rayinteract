@@ -1,5 +1,6 @@
 use raylib::prelude::*;
 use crate::style::Style;
+use std::ffi::CString;
 
 pub struct TextField {
     pub bounds: Rectangle,
@@ -93,6 +94,10 @@ impl TextField {
             };
             self.scroll_offset = (scroll_ratio * max_scroll as f32) as usize;
             self.scroll_offset = self.scroll_offset.min(max_scroll);
+            // Clamp cursor to visible text range after scrolling
+            let start = self.scroll_offset;
+            let end = (self.scroll_offset + max_visible_chars).min(self.text.len());
+            self.cursor_position = self.cursor_position.clamp(start, end);
         }
 
         // Stop scrolling when mouse button is released
@@ -177,9 +182,9 @@ impl TextField {
                 self.backspace_hold_timer += frame_time;
                 if self.backspace_hold_timer > 0.5 { // Initial delay
                     if self.backspace_hold_timer > 0.6 { // Start deleting after delay
-                        if self.cursor_position > 0 {
-                            self.text.remove(self.cursor_position - 1);
-                            self.cursor_position -= 1;
+                    if self.cursor_position > 0 {
+                        self.text.remove(self.cursor_position - 1);
+                        self.cursor_position -= 1;
                             self.update_scroll_offset();
                         }
                         self.backspace_hold_timer = 0.55; // Slower repeat rate for backspace
@@ -199,21 +204,18 @@ impl TextField {
     }
 
     fn update_scroll_offset(&mut self) {
-        // Calculate how much text can fit in the visible area
         let max_visible_chars = self.get_max_visible_chars();
-        
-        // If cursor is beyond visible area, adjust scroll offset
-        if self.cursor_position > self.scroll_offset + max_visible_chars {
-            self.scroll_offset = self.cursor_position - max_visible_chars;
-        } else if self.cursor_position < self.scroll_offset {
+        if self.cursor_position < self.scroll_offset {
             self.scroll_offset = self.cursor_position;
+        } else if self.cursor_position > self.scroll_offset + max_visible_chars {
+            self.scroll_offset = self.cursor_position.saturating_sub(max_visible_chars);
         }
-        
-        // Ensure scroll offset doesn't go negative
-        self.scroll_offset = self.scroll_offset.max(0);
+        // Clamp scroll_offset so we never have a big margin at the end
+        let max_scroll = self.text.len().saturating_sub(max_visible_chars);
+        self.scroll_offset = self.scroll_offset.min(max_scroll);
     }
 
-    pub fn draw(&self, d: &mut RaylibDrawHandle) {
+    pub fn draw(&self, d: &mut impl RaylibDraw) {
         // Draw background
         d.draw_rectangle_rec(self.bounds, self.style.background_color);
         
@@ -242,12 +244,21 @@ impl TextField {
         
         // Draw visible portion of text with scrolling
         if !self.text.is_empty() {
-            let visible_text = if self.scroll_offset < text_to_draw.len() {
-                &text_to_draw[self.scroll_offset..]
-            } else {
-                ""
-            };
-            
+            let available_width = self.bounds.width - self.style.padding * 2.0;
+            let text_slice = &self.text[self.scroll_offset..];
+            let mut end = text_slice.len();
+            let mut last_good = 0;
+            for (i, _) in text_slice.char_indices() {
+                let candidate = &text_slice[..i];
+                let cstr = CString::new(candidate).unwrap_or_default();
+                let w = unsafe { raylib::ffi::MeasureText(cstr.as_ptr(), self.style.font_size) } as f32;
+                if w > available_width {
+                    end = last_good;
+                    break;
+                }
+                last_good = i;
+            }
+            let visible_text = &text_slice[..end];
             d.draw_text(
                 visible_text,
                 (self.bounds.x + self.style.padding) as i32,
@@ -267,23 +278,35 @@ impl TextField {
 
         // Draw cursor when active
         if self.is_active && self.cursor_blink_timer < 0.5 {
-            let cursor_visible_pos = if self.cursor_position > self.scroll_offset {
-                self.cursor_position - self.scroll_offset
-            } else {
-                0
-            };
-            
-            let text_width = if cursor_visible_pos > 0 {
-                let visible_text = &self.text[self.scroll_offset..self.scroll_offset + cursor_visible_pos];
-                d.measure_text(visible_text, self.style.font_size) as f32
-            } else {
-                0.0
-            };
-            
+            let text_slice = &self.text[self.scroll_offset..];
+            let available_width = self.bounds.width - self.style.padding * 2.0;
+            let mut end = text_slice.len();
+            let mut last_good = 0;
+            let mut cursor_x = 0.0;
+            let mut count = 0;
+            for (i, _) in text_slice.char_indices() {
+                let candidate = &text_slice[..i];
+                let cstr = CString::new(candidate).unwrap_or_default();
+                let w = unsafe { raylib::ffi::MeasureText(cstr.as_ptr(), self.style.font_size) } as f32;
+                if w > available_width {
+                    end = last_good;
+                    break;
+                }
+                last_good = i;
+                if self.cursor_position == self.scroll_offset + count {
+                    cursor_x = w;
+                }
+                count += 1;
+            }
+            // If cursor is at the end
+            if self.cursor_position == self.scroll_offset + count {
+                let cstr = CString::new(&text_slice[..end]).unwrap_or_default();
+                cursor_x = unsafe { raylib::ffi::MeasureText(cstr.as_ptr(), self.style.font_size) } as f32;
+            }
             d.draw_line(
-                (self.bounds.x + self.style.padding + text_width) as i32,
+                (self.bounds.x + self.style.padding + cursor_x) as i32,
                 text_y,
-                (self.bounds.x + self.style.padding + text_width) as i32,
+                (self.bounds.x + self.style.padding + cursor_x) as i32,
                 text_y + self.style.font_size,
                 self.style.text_color,
             );
@@ -322,7 +345,7 @@ impl TextField {
             );
         }
     }
-
+    
     pub fn clear(&mut self) {
         self.text.clear();
         self.cursor_position = 0;
