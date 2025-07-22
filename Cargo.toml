@@ -1,6 +1,6 @@
 [package]
 name = "raylib_interactive"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["James Yacoube <jamesyacoube@yahoo.com>"]
 edition = "2021"
 description = "An interactive library for Raylib"
@@ -9,7 +9,9 @@ homepage = "https://github.com/OrtheSnowJames/rayinteract"
 readme = "README.md"
 
 [dependencies]
+arboard = "3.6.0"
 raylib = "5.0" 
+regex = "1.11.1"
 
 [lib]
 name = "raylib_interactive"

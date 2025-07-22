@@ -44,9 +44,8 @@ impl Checkbox {
         self.style.text_color = label;
     }
 
-    pub fn update(&mut self, rl: &RaylibHandle) {
-        let mouse_pos = rl.get_mouse_position();
-        self.is_hovered = self.bounds.check_collision_point_rec(mouse_pos);
+    pub fn update(&mut self, mouse: Vector2, rl: &RaylibHandle) {
+        self.is_hovered = self.bounds.check_collision_point_rec(mouse);
 
         // Handle click animation
         if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) && self.is_hovered {
@@ -75,7 +74,7 @@ impl Checkbox {
         }
     }
 
-    pub fn draw(&self, d: &mut RaylibDrawHandle) {
+    pub fn draw(&self, d: &mut impl RaylibDraw) {
         // Draw background
         let background_color = if self.is_hovered {
             self.style.hover_color

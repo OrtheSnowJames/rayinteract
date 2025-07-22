@@ -1,5 +1,5 @@
 use raylib::prelude::*;
-use raylib_interactive::{Button, Dropdown, Style, presets};
+use raylib_interactive::{Button, Dropdown, Style, presets, update_all, draw_all};
 
 #[derive(Debug, Clone, PartialEq)]
 enum TestOption {
@@ -95,11 +95,7 @@ fn main() {
 
     while !rl.window_should_close() {
         // Update all components
-        dropdown.update(&rl);
-        yes_button.update(&rl);
-        no_button.update(&rl);
-        reset_button.update(&rl);
-        run_test_button.update(&rl);
+        update_all!(&mut rl, Vector2::new(0.0, 0.0), dropdown, yes_button, no_button, reset_button, run_test_button);
 
         // Handle button clicks
         if yes_button.is_clicked(&rl) {
@@ -155,10 +151,7 @@ fn main() {
 
         // Draw control buttons
         d.draw_text("Controls:", 50, 180, 16, Color::BLACK);
-        yes_button.draw(&mut d);
-        no_button.draw(&mut d);
-        reset_button.draw(&mut d);
-        run_test_button.draw(&mut d);
+        draw_all!(&mut d, yes_button, no_button, reset_button, run_test_button);
 
         // Draw status
         d.draw_text("Status:", 50, 260, 16, Color::BLACK);

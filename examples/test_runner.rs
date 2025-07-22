@@ -1,5 +1,5 @@
 use raylib::prelude::*;
-use raylib_interactive::{Button, TextField, Checkbox, Dropdown, Style, presets, TestResults, run_all_tests};
+use raylib_interactive::{Button, TextField, Checkbox, Dropdown, Style, presets, TestResults, run_all_tests, update_all, draw_all};
 
 fn main() {
     let (mut rl, thread) = raylib::init()
@@ -46,14 +46,7 @@ fn main() {
 
     while !rl.window_should_close() {
         // Update all components
-        run_tests_button.update(&rl);
-        yes_button.update(&rl);
-        no_button.update(&rl);
-        reset_button.update(&rl);
-        demo_button.update(&rl);
-        demo_textfield.update(&mut rl);
-        demo_checkbox.update(&rl);
-        demo_dropdown.update(&rl);
+        update_all!(&mut rl, Vector2::new(0.0, 0.0), run_tests_button, yes_button, no_button, reset_button, demo_button, demo_textfield, demo_checkbox, demo_dropdown);
 
         // Handle button clicks
         if run_tests_button.is_clicked(&rl) && !tests_run {
@@ -109,10 +102,7 @@ fn main() {
 
         // Draw demo components
         d.draw_text("Demo Components (test interaction):", 250, 20, 14, Color::GRAY);
-        demo_button.draw(&mut d);
-        demo_textfield.draw(&mut d);
-        demo_checkbox.draw(&mut d);
-        demo_dropdown.draw(&mut d);
+        draw_all!(&mut d, demo_button, demo_textfield, demo_checkbox, demo_dropdown);
 
         // Draw test results
         if tests_run {

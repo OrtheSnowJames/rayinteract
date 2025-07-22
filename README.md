@@ -1,7 +1,7 @@
 # Raylib Interactive
-## The library for people who want to do other things but stick to raylib
+## The DIY GUI Toolkit for Raylib 
 
-This is a library that supports c++ and rust and adds many interactive things to your current raylib project, such as:
+This is a library that supports rust and adds many interactive things to your current raylib project, such as:
 
 - Buttons
 - Checkboxes
@@ -12,7 +12,12 @@ Raylib Interactive is a library built on raylib that adds many components to ray
 allowing you to make better graphical interfaces. The latest version:
 
 - Added Style system with predefined themes and simplified API with public fields. (Not compatible with older versions so much)
--
+- Added update_all and draw_all macros for clarity and less boilerplate.
+- Textfield scrolling and cursor for proportional fonts
+- Dropdowns support a deselect/clear option and handle selection offset correctly
+- Clicking outside a dropdown or textfield will close/deselect it (standard UI behavior)
+- Macro-based batch update/draw for all UI elements (no 50 lines of .update and .draw)
+- API and UI behavior are cleaner and more intuitive
 
 This project is hosted on github at the [GitHub homepage](https://github.com/OrtheSnowJames/rayinteract).
 
@@ -22,6 +27,41 @@ This project is hosted on github at the [GitHub homepage](https://github.com/Ort
 
 ### Style System
 The library now has a `Style` struct that provides theming across all components:
+
+```rust
+pub struct Style {
+    // Background colors
+    pub background_color: Color,
+    pub hover_color: Color,
+    pub pressed_color: Color,
+    pub active_color: Color,
+    pub disabled_color: Color,
+    
+    // Border colors
+    pub border_color: Color,
+    pub border_color_hover: Color,
+    pub border_color_pressed: Color,
+    pub border_color_active: Color,
+    
+    // Text colors
+    pub text_color: Color,
+    pub text_color_hover: Color,
+    pub text_color_pressed: Color,
+    pub text_color_disabled: Color,
+    
+    // Special colors for specific components
+    pub check_color: Color,        // For checkboxes
+    pub placeholder_color: Color,  // For text fields
+    
+    // Typography
+    pub font_size: i32,
+    
+    // Layout
+    pub padding: f32,
+    pub corner_radius: f32,
+    pub border_thickness: f32,
+}
+```
 
 - `Style::default()` - Default gray theme
 - `Style::modern_blue()` - Modern blue accent theme
@@ -83,6 +123,11 @@ pub struct TextField {
     pub cursor_position: usize,      // Text cursor position
     pub cursor_blink_timer: f32,     // Cursor blink animation
     pub backspace_hold_timer: f32,   // Backspace repeat timing
+    pub arrow_hold_timer: f32,       // Arrow key repeat timing
+    pub scroll_offset: usize,        // Horizontal scroll offset
+    pub is_scrolling: bool,          // Scroll bar drag state
+    pub allowed_pattern: Option<Regex>, // Regex for allowed characters
+    pub character_callback: Option<Box<dyn Fn(char) -> char>>, // Character transform callback
 }
 ```
 
@@ -96,6 +141,20 @@ pub struct TextField {
 - `activate()` // Give focus
 - `deactivate()` // Remove focus
 - `handle_input(rl)` // Process keyboard input
+- `only_allow(regex: Regex) -> Self` // Only allow characters matching regex
+- `change_character(callback: Fn(char) -> char) -> Self` // Transform each character as typed
+
+**Special:**
+- Use `.only_allow()` to restrict allowed characters (e.g., no spaces).
+- Use `.change_character()` to mask or transform input (e.g., password fields).
+
+**Password Field Example:**
+```rust
+use regex::Regex;
+let mut password_field = TextField::new(0.0, 0.0, 200.0, 30.0, 20)
+    .only_allow(Regex::new("^[^ ]$").unwrap()) // Disallow spaces
+    .change_character(|_| '*'); // Mask all input as '*'
+```
 
 ### Dropdown
 ```rust
@@ -114,6 +173,7 @@ pub struct Dropdown {
 **Methods:**
 - `new(x, y, width, height, items) -> Self` // Constructor
 - `with_style(style) -> Self` // Apply style
+- `with_deselect_option(label) -> Self` // Add a deselect/clear option as the first item
 - `set_colors(background, border, text, hover)` // Quick color setup
 - `update(rl)` // Handle input and selection
 - `draw(d)` // Render the dropdown
@@ -121,9 +181,13 @@ pub struct Dropdown {
 - `add_item(item)` // Add new option
 - `remove_item(index)` // Remove option
 - `clear_items()` // Remove all options
+- `clear_selection()` // Clear selected
 - `open()` // Expand dropdown
 - `close()` // Collapse dropdown
 - `toggle()` // Toggle open/closed
+
+**Special:**
+- Selecting the first item (deselect option) or pressing `Esc` while open will clear the selection.
 
 ### Style Presets
 The library provides convenient style presets for common use cases:
@@ -149,19 +213,70 @@ The `Style` struct provides builder methods for easy customization:
 - `with_typography(font_size)` // Set font size
 - `with_layout(padding, corner_radius, border_thickness)` // Set layout properties
 
+### Batch Update/Draw Macros
+You can update and draw multiple UI elements at once using the provided macros:
+
+```rust
+raylib_interactive::update_all!(
+    virtual_mouse, // The mouse position in virtual (UI) coordinates, useful for drawing to off-screen render targets
+    &mut rl,       // The Raylib handle
+    button,
+    checkbox,
+    text_field,
+    dropdown,
+    custom_button,
+);
+
+raylib_interactive::draw_all!(
+    &mut d,
+    button,
+    checkbox,
+    text_field,
+    dropdown,
+    custom_button,
+);
+```
+
+**If you are rendering to a virtual resolution (e.g., with a render texture for scaling/aspect ratio):**
+
+```rust
+let mouse = rl.get_mouse_position();
+let virtual_mouse = Vector2 {
+    x: ((mouse.x - offset_x as f32) / scale).clamp(0.0, VIRTUAL_WIDTH as f32),
+    y: ((mouse.y - offset_y as f32) / scale).clamp(0.0, VIRTUAL_HEIGHT as f32),
+};
+raylib_interactive::update_all!(
+    virtual_mouse,
+    &mut rl,
+    button,
+    checkbox,
+    // ...
+);
+```
+
+- The first argument is the virtual mouse position (for correct UI hit testing when using render textures or scaling).
+- The second argument is the Raylib handle.
+- Then list all your UI elements.
+
+### UI/UX Behavior
+- **Clicking outside a dropdown or textfield will close/deselect it.** This matches standard UI expectations and is built-in to the components.
+- **Dropdowns with a deselect option:** If you use `.with_deselect_option("None")`, the first item is a clear/deselect option. The selected index and `get_selected_item()` are offset accordingly, so you always get the correct item or `None` if deselected.
+- **Theme toggling:** The demo shows how to toggle between dark and light themes, and applies the correct style preset to each button (primary, secondary, success, danger, etc.) so colors always match the intended theme.
+- **Enabling/disabling buttons:** The demo shows how a checkbox can enable or disable a button, and how you can change the style and label dynamically.
+
 ## Usage Example
 ```rust
 use raylib::prelude::*;
 use raylib_interactive::{Button, TextField, Checkbox, Dropdown, Style, presets};
 
 fn main() {
-  let (mut rl, thread) = raylib::init()
-    .size(800, 600)
-    .title("Raylib Interactive Demo")
-    .build();
+    let (mut rl, thread) = raylib::init()
+        .size(800, 600)
+        .title("Raylib Interactive Demo")
+        .build();
 
     // Create components with different styles
-  let mut button = Button::new(350.0, 200.0, 100.0, 40.0, "Click Me!")
+    let mut button = Button::new(350.0, 200.0, 100.0, 40.0, "Click Me!")
         .with_style(presets::button_primary());
     
     let mut checkbox = Checkbox::new(350.0, 300.0, 20.0, "Enable Feature")
@@ -173,6 +288,7 @@ fn main() {
 
     let mut dropdown = Dropdown::new(300.0, 450.0, 200.0, 30.0, 
         vec!["Option 1".to_string(), "Option 2".to_string(), "Option 3".to_string()])
+        .with_deselect_option("None")
         .with_style(presets::dropdown_default());
 
     // Create custom style
@@ -188,18 +304,25 @@ fn main() {
     let mut custom_button = Button::new(350.0, 500.0, 100.0, 40.0, "Custom")
         .with_style(custom_style);
 
-  while !rl.window_should_close() {
+    while !rl.window_should_close() {
+        // Get mouse position for UI interaction
+        let mouse = rl.get_mouse_position();
+        
         // Update all components
-    button.update(&rl);
-    checkbox.update(&rl);
-        text_field.update(&mut rl);
-        dropdown.update(&rl);
-        custom_button.update(&rl);
+        raylib_interactive::update_all!(
+            mouse,
+            &mut rl,
+            button,
+            checkbox,
+            text_field,
+            dropdown,
+            custom_button,
+        );
 
         // Handle interactions
-    if button.is_clicked(&rl) {
-      println!("Button clicked!");
-    }
+        if button.is_clicked(&rl) {
+            println!("Button clicked!");
+        }
 
         if checkbox.is_checked {
             println!("Checkbox checked!");
@@ -207,6 +330,8 @@ fn main() {
 
         if let Some(selected) = dropdown.get_selected_item() {
             println!("Selected: {}", selected);
+        } else {
+            println!("Dropdown selection cleared");
         }
 
         // Direct field access examples
@@ -215,15 +340,18 @@ fn main() {
         checkbox.is_checked = true;
         dropdown.is_open = true;
 
-    let mut d = rl.begin_drawing(&thread);
-    d.clear_background(Color::WHITE);
+        let mut d = rl.begin_drawing(&thread);
+        d.clear_background(Color::WHITE);
 
         // Draw all components
-    button.draw(&mut d);
-    checkbox.draw(&mut d);
-    text_field.draw(&mut d);
-        dropdown.draw(&mut d);
-        custom_button.draw(&mut d);
-  }
+        raylib_interactive::draw_all!(
+            &mut d,
+            button,
+            checkbox,
+            text_field,
+            dropdown,
+            custom_button,
+        );
+    }
 }
 ```

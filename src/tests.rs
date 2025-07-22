@@ -230,9 +230,7 @@ pub fn run_dropdown_tests() -> bool {
         .build();
 
     while !rl.window_should_close() {
-        yes_button.update(&rl);
-        no_button.update(&rl);
-        dropdown.update(&rl);
+        crate::update_all!(&mut rl, Vector2::new(0.0, 0.0), yes_button, no_button, dropdown);
 
         if yes_button.is_clicked(&rl) {
             return true;
@@ -244,9 +242,7 @@ pub fn run_dropdown_tests() -> bool {
 
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::WHITE);
-        dropdown.draw(&mut d);
-        yes_button.draw(&mut d);
-        no_button.draw(&mut d);
+        crate::draw_all!(&mut d, yes_button, no_button, dropdown);
     }
      
     false

@@ -37,6 +37,15 @@ impl Dropdown {
         self
     }
 
+    pub fn with_deselect_option(mut self, label: &str) -> Self {
+        self.items.insert(0, label.to_string());
+        self
+    }
+
+    fn has_deselect_option(&self) -> bool {
+        self.items.get(0).map(|s| s == "None" || s == "Deselect" || s == "Clear").unwrap_or(false)
+    }
+
     pub fn set_colors(&mut self, background: Color, border: Color, text: Color, hover: Color) {
         self.style.background_color = background;
         self.style.border_color = border;
@@ -44,26 +53,47 @@ impl Dropdown {
         self.style.hover_color = hover;
     }
 
-    pub fn update(&mut self, rl: &RaylibHandle) {
-        let mouse_pos = rl.get_mouse_position();
+    pub fn update(&mut self, mouse: Vector2, rl: &RaylibHandle) {
         self.hover_index = None;
 
         // Handle main dropdown box click
         if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
-            if self.bounds.check_collision_point_rec(mouse_pos) {
+            if self.bounds.check_collision_point_rec(mouse) {
                 self.is_open = !self.is_open;
             } else if self.is_open {
                 // Check clicks on dropdown items
+                let mut clicked_item = false;
                 let visible_items = self.items.len().min(self.max_visible_items);
                 for i in 0..visible_items {
                     let item_bounds = self.get_item_bounds(i);
-                    if item_bounds.check_collision_point_rec(mouse_pos) {
-                        self.selected_index = Some(i + self.scroll_offset);
+                    if item_bounds.check_collision_point_rec(mouse) {
+                        clicked_item = true;
+                        if self.has_deselect_option() && i + self.scroll_offset == 0 {
+                            // Deselect option
+                            self.selected_index = None;
+                        } else {
+                            let idx = if self.has_deselect_option() {
+                                i + self.scroll_offset - 1
+                            } else {
+                                i + self.scroll_offset
+                            };
+                            self.selected_index = Some(idx);
+                        }
                         self.is_open = false;
                         break;
                     }
                 }
+                // If click was not on any item, close dropdown
+                if !clicked_item {
+                    self.is_open = false;
+                }
             }
+        }
+
+        // Handle Esc key to clear selection if open
+        if self.is_open && rl.is_key_pressed(KeyboardKey::KEY_ESCAPE) {
+            self.selected_index = None;
+            self.is_open = false;
         }
 
         // Handle scrolling when dropdown is open
@@ -81,7 +111,7 @@ impl Dropdown {
             let visible_items = self.items.len().min(self.max_visible_items);
             for i in 0..visible_items {
                 let item_bounds = self.get_item_bounds(i);
-                if item_bounds.check_collision_point_rec(mouse_pos) {
+                if item_bounds.check_collision_point_rec(mouse) {
                     self.hover_index = Some(i + self.scroll_offset);
                     break;
                 }
@@ -96,14 +126,27 @@ impl Dropdown {
 
         // Draw selected item or placeholder
         if let Some(selected) = self.selected_index {
-            if selected < self.items.len() {
-                d.draw_text(
-                    &self.items[selected],
-                    self.bounds.x as i32 + self.style.padding as i32,
-                    (self.bounds.y + (self.bounds.height - self.style.font_size as f32) / 2.0) as i32,
-                    self.style.font_size,
-                    self.style.text_color,
-                );
+            if self.has_deselect_option() {
+                let real_idx = selected + 1;
+                if real_idx < self.items.len() {
+                    d.draw_text(
+                        &self.items[real_idx],
+                        self.bounds.x as i32 + self.style.padding as i32,
+                        (self.bounds.y + (self.bounds.height - self.style.font_size as f32) / 2.0) as i32,
+                        self.style.font_size,
+                        self.style.text_color,
+                    );
+                }
+            } else {
+                if selected < self.items.len() {
+                    d.draw_text(
+                        &self.items[selected],
+                        self.bounds.x as i32 + self.style.padding as i32,
+                        (self.bounds.y + (self.bounds.height - self.style.font_size as f32) / 2.0) as i32,
+                        self.style.font_size,
+                        self.style.text_color,
+                    );
+                }
             }
         }
 
@@ -184,7 +227,24 @@ impl Dropdown {
     }
 
     pub fn get_selected_item(&self) -> Option<&String> {
-        self.selected_index.map(|i| &self.items[i])
+        if let Some(idx) = self.selected_index {
+            if self.has_deselect_option() {
+                // If deselect option is present, real items start at index 1
+                let real_idx = idx + 1;
+                if real_idx < self.items.len() {
+                    return Some(&self.items[real_idx]);
+                } else {
+                    return None;
+                }
+            } else {
+                if idx < self.items.len() {
+                    return Some(&self.items[idx]);
+                } else {
+                    return None;
+                }
+            }
+        }
+        None
     }
 
     pub fn add_item(&mut self, item: String) {
@@ -210,6 +270,10 @@ impl Dropdown {
         self.scroll_offset = 0;
     }
 
+    pub fn clear_selection(&mut self) {
+        self.selected_index = None;
+    }
+
     pub fn open(&mut self) {
         self.is_open = true;
     }
@@ -222,3 +286,5 @@ impl Dropdown {
         self.is_open = !self.is_open;
     }
 }
+
+
